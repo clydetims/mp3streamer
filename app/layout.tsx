@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+import { Topbar } from "@/components/layout/Topbar";
+import { SearchProvider } from "./contexts/SearchContext";
+import MusicPlayer from "@/components/player/MusicPlayer";
+import { MobileNavBar } from "@/components/layout/MobileNavBar";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -27,7 +32,37 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-black">
+        <SearchProvider>
+        
+
+      
+            <main className="flex-1 flex flex-col relative min-h-0 bg-gradient-to-b from-[#1a1a1a] to-[#121212]">
+              {/* Topbar - sticky for navigation */}
+              <div className="sticky top-0 z-20 bg-gradient-to-b from-[#1a1a1a]/95 to-[#1a1a1a]/80 backdrop-blur-md px-3 sm:px-6 py-2 md:py-3">
+                <Topbar/>
+              </div>
+              
+              {/* Scrollable Content Area */}
+              <div className="flex-1 overflow-y-auto scrollbar-hide pb-20 md:pb-24">
+                {children}
+              </div>
+              
+              {/* Music Player - fixed at bottom */}
+
+              
+              {/* Mobile Navigation - shown only on mobile, fixed at bottom */}
+              <div className="fixed md:bottom-0 bottom-16 left-0 right-0 z-20">
+                <MusicPlayer/>
+                <div className="md:hidden fixed bottom-16 left-0 right-0 z-20">
+
+                  <MobileNavBar />
+                </div>
+              </div>
+            </main>
+        
+        </SearchProvider>
+      </body>
     </html>
   );
 }
