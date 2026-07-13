@@ -1,7 +1,17 @@
 // lib/youtube/search.ts
+// NO "use server" directive here - this will be imported by API routes only
 
+// Use dynamic import for the CommonJS module
+let yts: any = null;
 
-import yts from 'yt-search'
+async function getYts() {
+  if (!yts) {
+    // Dynamically import the CommonJS module
+    const module = await Function('return import("yt-search")')();
+    yts = module.default || module;
+  }
+  return yts;
+}
 
 export interface YouTubeVideo {
   videoId: string
@@ -257,17 +267,19 @@ export async function searchYouTube(
   if (!query) return []
 
   try {
+    const ytSearch = await getYts();
+    
     // Add music-specific terms to improve search
     const searchQuery = musicOnly 
       ? `${query} official audio OR official music video OR official lyric video`
       : query;
     
-    const r = await yts(searchQuery)
+    const r = await ytSearch(searchQuery)
     
     // Map to clean frontend object
     let videos: YouTubeVideo[] = r.videos
       .slice(0, limit * 2) // Fetch extra for filtering
-      .map((video) => ({
+      .map((video: any) => ({
         videoId: video.videoId,
         url: video.url,
         title: video.title,
@@ -336,16 +348,18 @@ export async function searchAll(
   if (!query) return { songs: [], playlists: [], artists: [] }
 
   try {
+    const ytSearch = await getYts();
+    
     const searchQuery = musicOnly 
       ? `${query} official audio OR official music video OR official lyric video`
       : query;
       
-    const r = await yts(searchQuery)
+    const r = await ytSearch(searchQuery)
 
     // Map videos
     let videos: YouTubeVideo[] = r.videos
       .slice(0, limit * 2)
-      .map((video) => ({
+      .map((video: any) => ({
         videoId: video.videoId,
         url: video.url,
         title: video.title,
@@ -364,7 +378,7 @@ export async function searchAll(
     // Map playlists
     const playlists: SpotifyPlaylist[] = r.playlists
       .slice(0, limit)
-      .map((pl) => ({
+      .map((pl: any) => ({
         listId: pl.listId,
         url: pl.url,
         title: pl.title,
@@ -376,7 +390,7 @@ export async function searchAll(
     // Map channels/artists
     const artists: SpotifyArtist[] = r.channels
       .slice(0, limit)
-      .map((ch) => ({
+      .map((ch: any) => ({
         name: ch.name || ch.title || 'Unknown Artist',
         url: ch.url,
         image: ch.image || ch.thumbnail || '',

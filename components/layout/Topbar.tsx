@@ -6,7 +6,9 @@ import { useRouter, usePathname } from "next/navigation"
 import { ChevronLeft, ChevronRight, Bell, Search, X, User, Download } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useSearch } from "@/app/contexts/SearchContext"
-import { searchYouTube, YouTubeVideo } from "@/lib/youtube/search"
+// REMOVE THIS: import { searchYouTube, YouTubeVideo } from "@/lib/youtube/search"
+// ADD THIS instead - import types from a separate types file
+import type { YouTubeVideo } from "@/lib/youtube/types"
 
 export function Topbar() {
   const router = useRouter()
@@ -42,10 +44,11 @@ export function Topbar() {
       searchTimeoutRef.current = setTimeout(async () => {
         setIsSearching(true)
         try {
-          // Use the filtered search
-          const { searchMusicRecommendations } = await import("@/lib/youtube/search")
-          const results = await searchMusicRecommendations(searchQuery, 10)
-          setSearchResults(results)
+          // Use API route instead of direct import
+          const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&limit=10`)
+          if (!res.ok) throw new Error('Search failed')
+          const data = await res.json()
+          setSearchResults(data.songs || [])
           setShowResults(true)
         } catch (error) {
           console.error("Search failed:", error)
@@ -153,7 +156,7 @@ export function Topbar() {
           {searchQuery && (
             <button
               onClick={handleClearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-[#b3b3b3] hover:text-white transition z-10000"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-[#b3b3b3] hover:text-white transition z-10"
             >
               <X className="size-4" />
             </button>
@@ -161,7 +164,7 @@ export function Topbar() {
 
           {/* Search Results Dropdown */}
           {shouldShowResults && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-[#282828] border border-neutral-700 rounded-lg overflow-hidden shadow-2xl max-h-96 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-[#282828] border border-neutral-700 rounded-lg overflow-hidden shadow-2xl max-h-96 overflow-y-auto z-50">
               {/* Loading State */}
               {isSearching && (
                 <div className="p-4 text-center">
@@ -170,7 +173,6 @@ export function Topbar() {
               )}
 
               {/* Results */}
-        
               {!isSearching && searchResults.map((video) => (
                 <div
                   key={video.videoId}
@@ -230,7 +232,7 @@ export function Topbar() {
 
           {/* No Results State */}
           {shouldShowNoResults && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-[#282828] border border-neutral-700 rounded-lg overflow-hidden shadow-2xl">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-[#282828] border border-neutral-700 rounded-lg overflow-hidden shadow-2xl z-50">
               <div className="p-6 text-center text-[#b3b3b3]">
                 <Search className="size-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm font-medium">No results found for &ldquo;{searchQuery}&rdquo;</p>
@@ -261,7 +263,7 @@ export function Topbar() {
           </button>
           
           {showNotifications && (
-            <div className="absolute right-0 top-full mt-2 w-72 bg-[#282828] border border-neutral-700 rounded-lg shadow-2xl p-4">
+            <div className="absolute right-0 top-full mt-2 w-72 bg-[#282828] border border-neutral-700 rounded-lg shadow-2xl p-4 z-50">
               <p className="text-white font-semibold mb-2">Notifications</p>
               <p className="text-[#b3b3b3] text-sm">No new notifications</p>
             </div>
@@ -281,7 +283,7 @@ export function Topbar() {
           </button>
           
           {showUserMenu && (
-            <div className="absolute right-0 top-full mt-2 w-48 bg-[#282828] border border-neutral-700 rounded-lg shadow-2xl py-1">
+            <div className="absolute right-0 top-full mt-2 w-48 bg-[#282828] border border-neutral-700 rounded-lg shadow-2xl py-1 z-50">
               <button className="w-full text-left px-4 py-2 text-sm text-[#b3b3b3] hover:text-white hover:bg-neutral-700 transition">
                 Profile
               </button>

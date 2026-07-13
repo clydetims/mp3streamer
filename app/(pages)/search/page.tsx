@@ -1,9 +1,15 @@
+// app/(pages)/search
+// app/(pages)/search/page.tsx
 'use client'
 
 import React, { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { searchAll, SpotifyAllResults, YouTubeVideo, SpotifyPlaylist, SpotifyArtist } from '@/lib/youtube/search'
+// REMOVE THIS: import { searchAll, SpotifyAllResults, YouTubeVideo, SpotifyPlaylist, SpotifyArtist } from '@/lib/youtube/search'
 import { useSearch } from '@/app/contexts/SearchContext'
+
+// Import types only - create a separate types file
+import type { YouTubeVideo, SpotifyPlaylist, SpotifyArtist, SpotifyAllResults } from '@/lib/youtube/types'
+// ... rest of imports
 import { 
   Play, 
   ArrowLeft, 
@@ -68,34 +74,39 @@ function SearchContent() {
     }
   }
 
-  useEffect(() => {
-    let active = true
-    if (!searchQuery.trim()) {
-      setResults({ songs: [], playlists: [], artists: [] })
-      return
-    }
+// In SearchContent component, update the useEffect that does the search:
 
-    const delayDebounce = setTimeout(async () => {
-      setIsSearching(true)
-      try {
-        const data = await searchAll(searchQuery, limit)
-        if (active) {
-          setResults(data)
-        }
-      } catch (err) {
-        console.error(err)
-      } finally {
-        if (active) {
-          setIsSearching(false)
-        }
+useEffect(() => {
+  let active = true
+  if (!searchQuery.trim()) {
+    setResults({ songs: [], playlists: [], artists: [] })
+    return
+  }
+
+  const delayDebounce = setTimeout(async () => {
+    setIsSearching(true)
+    try {
+      // Use fetch to call the API instead of direct import
+      const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&limit=${limit}`)
+      if (!res.ok) throw new Error('Search failed')
+      const data = await res.json()
+      if (active) {
+        setResults(data)
       }
-    }, 400)
-
-    return () => {
-      active = false
-      clearTimeout(delayDebounce)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      if (active) {
+        setIsSearching(false)
+      }
     }
-  }, [searchQuery])
+  }, 400)
+
+  return () => {
+    active = false
+    clearTimeout(delayDebounce)
+  }
+}, [searchQuery, limit])
 
   const handlePlayClick = (song: YouTubeVideo) => {
     if (currentTrack?.videoId === song.videoId) {

@@ -1,6 +1,6 @@
 // app/api/recommended/route.ts
 import { searchMusicRecommendations } from "@/lib/youtube/search";
-import { NextResponse } from "next/server";
+
 
 const MUSIC_CATEGORIES: Record<string, { id: string; label: string; query: string; icon: string; }> = {
   opm: {
@@ -53,18 +53,23 @@ const MUSIC_CATEGORIES: Record<string, { id: string; label: string; query: strin
   }
 }
 
+
+import { NextResponse } from "next/server";
+
+// ... MUSIC_CATEGORIES stays the same ...
+
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const categoryId = searchParams.get("category") || "trending";
-  const limit = parseInt(searchParams.get("limit") || "20");
-  
-  const category = MUSIC_CATEGORIES[categoryId];
-  
-  if (!category) {
-    return NextResponse.json({ error: "Invalid category" }, { status: 400 });
-  }
-  
   try {
+    const { searchParams } = new URL(req.url);
+    const categoryId = searchParams.get("category") || "trending";
+    const limit = parseInt(searchParams.get("limit") || "20");
+    
+    const category = MUSIC_CATEGORIES[categoryId];
+    
+    if (!category) {
+      return NextResponse.json({ error: "Invalid category" }, { status: 400 });
+    }
+    
     const results = await searchMusicRecommendations(category.query, limit);
     
     return NextResponse.json({
@@ -73,6 +78,12 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     console.error("Recommendations error:", error);
-    return NextResponse.json({ error: "Failed to fetch recommendations" }, { status: 500 });
+    return NextResponse.json(
+      { 
+        error: "Failed to fetch recommendations",
+        details: error instanceof Error ? error.message : String(error)
+      }, 
+      { status: 500 }
+    );
   }
 }
