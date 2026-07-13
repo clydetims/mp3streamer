@@ -6,9 +6,7 @@ let innertube: any = null;
 
 async function getInnertube() {
   if (!innertube) {
-    innertube = await Innertube.create({
-      cache: new Map(),
-    });
+    innertube = await Innertube.create();
   }
   return innertube;
 }
