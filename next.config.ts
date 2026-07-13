@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
     'furuncular-undetrimentally-cristi.ngrok-free.dev',
     '*.ngrok-free.dev',
     '*.ngrok-free.app',
-    '*.ngrok.io'
+    '*.ngrok.io',
+    '*.vercel.app'
   ],
   experimental: {
     serverActions: {
@@ -15,7 +16,8 @@ const nextConfig: NextConfig = {
         '*.ngrok-free.app',
         '*.ngrok-free.dev',
         '*.ngrok.io',
-        '*.loca.lt'
+        '*.loca.lt',
+        '*.vercel.app'
       ],
     },
   },
