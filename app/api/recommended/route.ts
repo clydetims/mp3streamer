@@ -2,48 +2,56 @@
 import { searchMusicRecommendations } from "@/lib/youtube/search";
 import { NextResponse } from "next/server";
 
-const MUSIC_CATEGORIES: Record<string, { label: string; query: string }> = {
+const MUSIC_CATEGORIES: Record<string, { id: string; label: string; query: string; icon: string; }> = {
+  opm: {
+    id: 'opm',
+    label: 'OPM',
+    query: 'filipino music',
+    icon: ''
+  },
   trending: {
+    id: 'trending',
     label: 'Trending Now',
-    query: 'trending songs 2026 new music hits',
+    query: 'trending music 2026',
+    icon: 'TrendingUp'
+  },
+  nostalgia: {
+    id: 'nostalgia',
+    label: 'Nostalgia',
+    query: 'old songs',
+    icon: ''
   },
   topHits: {
+    id: 'topHits',
     label: 'Top Hits',
-    query: 'top hits 2026 popular songs',
+    query: 'top hits 2026',
+    icon: 'Flame'
   },
   chillVibes: {
+    id: 'chillVibes',
     label: 'Chill Vibes',
-    query: 'chill lofi relaxing music',
-  },
-  workout: {
-    label: 'Workout',
-    query: 'workout motivation gym music',
+    query: 'lofi chill music mix',
+    icon: 'Coffee'
   },
   focus: {
+    id: 'focus',
     label: 'Deep Focus',
-    query: 'focus concentration study music',
+    query: 'focus music concentration',
+    icon: 'Brain'
   },
   party: {
+    id: 'party',
     label: 'Party Mix',
-    query: 'party dance hits 2026',
-  },
-  sleep: {
-    label: 'Sleep & Relax',
-    query: 'sleep relaxation calming music',
-  },
-  throwback: {
-    label: 'Throwback Classics',
-    query: '90s 2000s greatest hits',
+    query: 'party mix 2026 dance',
+    icon: 'PartyPopper'
   },
   acoustic: {
+    id: 'acoustic',
     label: 'Acoustic Sessions',
-    query: 'acoustic unplugged songs',
-  },
-  electronic: {
-    label: 'Electronic',
-    query: 'electronic edm music 2026',
-  },
-};
+    query: 'acoustic cover songs',
+    icon: 'Guitar'
+  }
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);

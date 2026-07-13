@@ -1,10 +1,22 @@
 // lib/constants/categories.ts
 export const MUSIC_CATEGORIES = {
+  opm: {
+    id: 'opm',
+    label: 'OPM',
+    query: 'filipino music',
+    icon: ''
+  },
   trending: {
     id: 'trending',
     label: 'Trending Now',
     query: 'trending music 2026',
     icon: 'TrendingUp'
+  },
+  nostalgia: {
+    id: 'nostalgia',
+    label: 'Nostalgia',
+    query: 'old songs',
+    icon: ''
   },
   topHits: {
     id: 'topHits',
@@ -18,12 +30,6 @@ export const MUSIC_CATEGORIES = {
     query: 'lofi chill music mix',
     icon: 'Coffee'
   },
-  workout: {
-    id: 'workout',
-    label: 'Workout',
-    query: 'workout music motivation',
-    icon: 'Dumbbell'
-  },
   focus: {
     id: 'focus',
     label: 'Deep Focus',
@@ -36,28 +42,10 @@ export const MUSIC_CATEGORIES = {
     query: 'party mix 2026 dance',
     icon: 'PartyPopper'
   },
-  sleep: {
-    id: 'sleep',
-    label: 'Sleep & Relax',
-    query: 'sleep music relaxation',
-    icon: 'Moon'
-  },
-  throwback: {
-    id: 'throwback',
-    label: 'Throwback Classics',
-    query: '90s 2000s greatest hits',
-    icon: 'Clock'
-  },
   acoustic: {
     id: 'acoustic',
     label: 'Acoustic Sessions',
     query: 'acoustic cover songs',
     icon: 'Guitar'
-  },
-  electronic: {
-    id: 'electronic',
-    label: 'Electronic',
-    query: 'electronic music mix 2026',
-    icon: 'Zap'
   }
 } as const;

@@ -28,7 +28,7 @@ interface SearchContextType {
   clearQueue: () => void;
   
   // Download action
-  downloadTrack: (videoId: string, title: string) => Promise<void>;
+  downloadTrack: (videoId: string, title: string, artist?: string) => Promise<void>;
   
   // Loading state
   isLoading: boolean;
@@ -36,6 +36,9 @@ interface SearchContextType {
 }
 
 const SearchContext = React.createContext<SearchContextType | undefined>(undefined);
+
+const LOCAL_STORAGE_KEY = 'recent_searches_music';
+const MAX_RECENT_SEARCHES = 10;
 
 export function SearchProvider({ children }: { children: React.ReactNode }) {
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -45,6 +48,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   const [queueIndex, setQueueIndex] = React.useState(-1);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
+
 
   // Function to play a track
   const playTrack = async (videoId: string, title?: string, thumbnail?: string, author?: string) => {
@@ -80,7 +84,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Download function
-  const downloadTrack = async (videoId: string, title: string) => {
+  const downloadTrack = async (videoId: string, title: string, artist?: string) => {
     setIsDownloading(true);
     
     try {
@@ -93,13 +97,20 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       if (data.audioUrl) {
         // Create a download link
         const link = document.createElement('a');
-        link.href = data.audioUrl;
         
-        // Clean filename
-        const safeTitle = title
-          .replace(/[^\w\s-]/g, '') // Remove special characters
-          .replace(/\s+/g, '_')      // Replace spaces with underscores
-          .substring(0, 100);        // Limit length
+        // Pass title and artist parameters to download API for clean attachment filename
+        link.href = `/api/download?videoId=${videoId}&title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist || '')}`;
+        
+        // Construct display filename
+        const downloadName = artist && artist !== 'Unknown Artist'
+          ? `${title} - ${artist}`
+          : title;
+          
+        const safeTitle = downloadName
+          .replace(/[^\w\s-]/g, '') // Keep alphanumeric, spaces, and hyphens
+          .replace(/\s+/g, ' ')      // Normalize spaces
+          .trim()
+          .substring(0, 100);
           
         link.download = `${safeTitle}.mp3`;
         document.body.appendChild(link);

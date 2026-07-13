@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: [
-        'localhost:3000',
+        'localhost:3001',
         '*.ngrok-free.app',
         '*.ngrok-free.dev',
         '*.ngrok.io',

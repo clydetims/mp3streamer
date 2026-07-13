@@ -131,30 +131,34 @@
 
 
 
-/* Smooth modern scrollbar */
+/* global scrollbar */
 * {
-  scrollbar-width: thin; /* Firefox */
+  scrollbar-width: thin;
   scrollbar-color: #5a5a5a transparent;
-  scroll-behavior: smooth;
 }
 
-/* Chrome, Edge, Safari */
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 2px;
+  height: 2px;
 }
 
-*::-webkit-scrollbar-track {
-  background: transparent;
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-*::-webkit-scrollbar-thumb {
-  background-color: #888;
-  border-radius: 999px;
-  border: 2px solid transparent;
-  background-clip: content-box;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-*::-webkit-scrollbar-thumb:hover {
-  background-color: #555;
+@media (min-width: 768px) {
+  .no-scrollbar::-webkit-scrollbar {
+    display: block;
+    width: 2px;
+    height: 2px;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: thin;
+  }
 }

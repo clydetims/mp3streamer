@@ -24,8 +24,8 @@ export async function extractAudioStream(videoId: string) {
         await mkdir(outputDir, { recursive: true });
     }
     
-    // Download and convert to audio file
-    await execPromise(`yt-dlp -x --audio-format mp3 -o "${outputPath}" "${videoId}"`);
+    // Download and convert to audio file with high quality (320kbps)
+    await execPromise(`yt-dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K -o "${outputPath}" "${videoId}"`);
     
     // Create Node.js ReadStream
     const nodeStream = createReadStream(outputPath);

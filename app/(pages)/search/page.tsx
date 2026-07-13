@@ -46,6 +46,8 @@ function SearchContent() {
 
   const [activeTab, setActiveTab] = useState<'All' | 'Songs' | 'Playlists' | 'Artists'>('All')
   const [results, setResults] = useState<SpotifyAllResults>({ songs: [], playlists: [], artists: [] })
+  const [limit, setLimit] = useState(10);
+  const [seeMore, setSeeMore] = useState(false);
   const [isSearching, setIsSearching] = useState(false)
   const [hoveredSongId, setHoveredSongId] = useState<string | null>(null)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
@@ -76,7 +78,7 @@ function SearchContent() {
     const delayDebounce = setTimeout(async () => {
       setIsSearching(true)
       try {
-        const data = await searchAll(searchQuery)
+        const data = await searchAll(searchQuery, limit)
         if (active) {
           setResults(data)
         }
@@ -107,7 +109,7 @@ function SearchContent() {
     e.stopPropagation()
     setDownloadingId(song.videoId)
     try {
-      await downloadTrack(song.videoId, song.title)
+      await downloadTrack(song.videoId, song.title, song.author)
     } catch (err) {
       console.error(err)
     } finally {
@@ -341,8 +343,7 @@ function SearchContent() {
                                     <button
                                       onClick={(e) => handleDownloadClick(e, song)}
                                       disabled={downloadingId === song.videoId}
-                                      className="p-2 rounded-full hover:bg-white/10 text-[#a7a7a7] hover:text-white
-                                                opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100
+                                      className="p-2 rounded-full text-[#a7a7a7] group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100
                                                 opacity-100 transition-opacity" // Always visible on mobile
                                       title="Download MP3"
                                     >
@@ -552,7 +553,7 @@ function SearchContent() {
                                 <button
                                   onClick={(e) => handleDownloadClick(e, song)}
                                   disabled={downloadingId === song.videoId}
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full hover:bg-white/10 text-[#a7a7a7] hover:text-white"
+                                  className="p-2 rounded-full text-[#a7a7a7]"
                                 >
                                   {downloadingId === song.videoId ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />

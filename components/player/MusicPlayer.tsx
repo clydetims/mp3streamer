@@ -12,7 +12,7 @@ export default function MusicPlayer() {
     togglePlayPause, 
     playNext, 
     playPrevious,
-     queue 
+    queue
   } = useSearch();
 
   // Audio element ref
@@ -44,7 +44,15 @@ export default function MusicPlayer() {
     };
 
     const handleEnded = () => {
-      playNext();
+      const audio = audioRef.current;
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+      setCurrentTime(0);
+      if (isPlaying) {
+        togglePlayPause();
+      }
     };
 
     const handleError = () => {
@@ -65,6 +73,20 @@ export default function MusicPlayer() {
     };
   }, [playNext]);
 
+  
+  useEffect(() => {
+    if (currentTime >= duration && duration > 0 && isPlaying) {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+      setCurrentTime(0);
+      togglePlayPause();
+    }
+  }, [currentTime, duration, isPlaying, togglePlayPause]);
+
+
   // Update audio source when track changes
   useEffect(() => {
     const audio = audioRef.current;
@@ -84,6 +106,7 @@ export default function MusicPlayer() {
       }
     }
   }, [currentTrack?.url]);
+
 
   // Handle play/pause
   useEffect(() => {

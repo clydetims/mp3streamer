@@ -121,21 +121,7 @@ export function Topbar() {
       "w-full rounded-t-xl flex items-center justify-between h-16 px-6 border-b-2 border-[#404040]",
       pathname === "/search" ? "hidden md:flex" : "flex"
     )}>
-      {/* Left Section - Navigation */}
-      <div className="flex items-center gap-2">
-        <button 
-          onClick={() => router.back()}
-          className="p-2 rounded-full bg-[#1f1f1f] hover:bg-[#2a2a2a] text-[#b3b3b3] hover:text-white transition duration-200"
-        >
-          <ChevronLeft className="size-5" />
-        </button>
-        <button 
-          onClick={() => router.forward()}
-          className="p-2 rounded-full bg-[#1f1f1f] hover:bg-[#2a2a2a] text-[#b3b3b3] hover:text-white transition duration-200"
-        >
-          <ChevronRight className="size-5" />
-        </button>
-      </div>
+
 
       {/* Right Section: Search + Notifications + User */}
       <div className="flex items-center gap-2">
@@ -184,7 +170,7 @@ export function Topbar() {
               )}
 
               {/* Results */}
-              // Find the search results mapping section and update it:
+        
               {!isSearching && searchResults.map((video) => (
                 <div
                   key={video.videoId}
@@ -214,7 +200,7 @@ export function Topbar() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      downloadTrack(video.videoId, video.title);
+                      downloadTrack(video.videoId, video.title, video.author);
                     }}
                     className="p-2 rounded-full hover:bg-white/10 text-[#b3b3b3] hover:text-white opacity-0 group-hover:opacity-100 transition-all"
                     title="Download MP3"

@@ -1,12 +1,15 @@
 // app/api/download/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { checkDbCache } from "@/lib/db/cache";
+import { extractArtistFromTitle, extractSongTitle } from "@/lib/youtube/music-filter";
 import fs from "fs";
 import path from "path";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const videoId = searchParams.get("videoId");
+  const paramTitle = searchParams.get("title");
+  const paramArtist = searchParams.get("artist");
   
   if (!videoId) {
     return NextResponse.json({ error: "Missing videoId" }, { status: 400 });
@@ -24,10 +27,19 @@ export async function GET(req: NextRequest) {
         const stat = fs.statSync(filePath);
         const fileStream = fs.createReadStream(filePath);
         
-        // Create safe filename
-        const safeTitle = (cached.title || 'download')
-          .replace(/[^\w\s-]/g, '')
-          .replace(/\s+/g, '_')
+        // Determine the artist and song title
+        const artist = paramArtist || extractArtistFromTitle(cached.title);
+        const songTitle = paramTitle || extractSongTitle(cached.title);
+        
+        // Construct display filename format "Title - Artist" (or just "Title" if no artist is found)
+        const downloadName = artist && artist !== 'Unknown Artist'
+          ? `${songTitle} - ${artist}`
+          : songTitle;
+          
+        const safeTitle = downloadName
+          .replace(/[^\w\s-]/g, '') // Keep alphanumeric, spaces, and hyphens
+          .replace(/\s+/g, ' ')      // Normalize spaces
+          .trim()
           .substring(0, 100);
         
         // Return file as download

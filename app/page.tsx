@@ -81,51 +81,7 @@ export default function Home() {
       </div>
 
       {/* Recently Played / Shortcuts - 2 column grid like Spotify */}
-      <div className="px-4 mb-6">
-        <div className="grid grid-cols-2 gap-2">
-          {HOME_SHORTCUTS.map((shortcut) => {
-            const isThisShortcutLoading = playingShortcutId === shortcut.title;
-            const isCurrentlyPlaying = currentTrack?.videoId && 
-              playingShortcutId === null && 
-              isPlaying;
-            
-            return (
-              <div
-                key={shortcut.title}
-                onClick={() => handleShortcutClick(shortcut)}
-                className="group relative flex items-center bg-white/10 hover:bg-white/20 rounded-md overflow-hidden transition-all duration-200 active:scale-95 cursor-pointer"
-              >
-                {/* Image - smaller on mobile */}
-                <div className="relative w-14 h-14 md:w-16 md:h-16 flex-shrink-0">
-                  <img
-                    src={shortcut.image}
-                    alt={shortcut.title}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                  {isThisShortcutLoading && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <Loader2 className="w-5 h-5 animate-spin text-[#1ed760]" />
-                    </div>
-                  )}
-                </div>
-                
-                {/* Title */}
-                <span className="flex-1 font-semibold text-xs md:text-sm px-3 line-clamp-2 leading-tight">
-                  {shortcut.title}
-                </span>
 
-                {/* Play button appears on hover (desktop) or is hidden on mobile */}
-                <div className="absolute right-2 md:right-3 opacity-0 group-hover:opacity-100 transition-all duration-200 hidden md:block">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#1ed760] flex items-center justify-center shadow-xl hover:scale-105 transition-transform">
-                    <Play className="w-4 h-4 md:w-5 md:h-5 text-black fill-current ml-0.5" />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Recently Played Section (Spotify-like) */}
       <div className="px-4 mb-6">
@@ -139,26 +95,7 @@ export default function Home() {
           </button>
         </div>
         <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-          {/* Example recently played items */}
-          {[1, 2, 3].map((item) => (
-            <div key={item} className="group cursor-pointer">
-              <div className="relative aspect-square rounded-md overflow-hidden bg-neutral-800 mb-2">
-                <img
-                  src={`https://images.unsplash.com/photo-${1518609878373 + item}?q=80&w=200&auto=format&fit=crop`}
-                  alt="Recently played"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
-                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-2 group-hover:translate-y-0">
-                  <div className="w-10 h-10 rounded-full bg-[#1ed760] flex items-center justify-center shadow-xl">
-                    <Play className="w-4 h-4 text-black fill-current ml-0.5" />
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs md:text-sm font-medium line-clamp-1">Daily Mix {item}</p>
-              <p className="text-[10px] md:text-xs text-neutral-400 line-clamp-1">Playlist • Spotify</p>
-            </div>
-          ))}
+    
         </div>
       </div>
 

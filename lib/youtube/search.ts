@@ -30,6 +30,7 @@ const MUSIC_KEYWORDS = [
   'official',
   'audio',
   'lyrics',
+  'live performance'
 ] as const;
 
 /**
@@ -40,7 +41,6 @@ const NON_MUSIC_KEYWORDS = [
   'review',
   'tutorial',
   'how to',
-  'podcast',
   'interview',
   'behind the scenes',
   'vlog',
@@ -56,6 +56,9 @@ const NON_MUSIC_KEYWORDS = [
   'karaoke',
   'live stream',
   'making of',
+  'top songs',
+  'top hits',
+  'top trending'
 ] as const;
 
 /**
@@ -83,7 +86,7 @@ function parseDurationToSeconds(duration: string): number {
  */
 function isShortDuration(duration: string): boolean {
   const seconds = parseDurationToSeconds(duration);
-  return seconds > 0 && seconds <= 600; // 10 minutes
+  return seconds > 0 && seconds <= 1200; // 10 minutes
 }
 
 /**
@@ -387,4 +390,4 @@ export async function searchAll(
     console.error('Spotify-style search error:', error)
     return { songs: [], playlists: [], artists: [] }
   }
-}
+}

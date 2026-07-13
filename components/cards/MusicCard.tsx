@@ -1,9 +1,9 @@
 // components/cards/MusicCard.tsx
 "use client";
 
-import { Play, Heart, Eye, Clock, Music, Download, Loader2 } from "lucide-react";
+import { Play, Heart, Eye, Clock, Music, Download, Loader2, Pause } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearch } from "@/app/contexts/SearchContext";
 
 interface MusicCardProps {
@@ -28,6 +28,7 @@ export function MusicCard({
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { playTrack, downloadTrack, isLoading, isDownloading, currentTrack } = useSearch();
+  const [savesPlayedMusic, setSavesPlayedMusic] = useState<MusicCardProps[]>([]);
   
   const isCurrentlyPlaying = currentTrack?.videoId === videoId;
   const [downloading, setDownloading] = useState(false);
@@ -40,21 +41,65 @@ export function MusicCard({
     return views;
   };
 
+
+
+
   const handlePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
     playTrack(videoId, title, thumbnail, artist);
+
+    
+
+    const stored = localStorage.getItem("recent_played");
+    const currentHistory: MusicCardProps[] = stored ? JSON.parse(stored) : [];
+
+    const filteredHistory = currentHistory.filter((item) => item.videoId !== videoId);
+
+    const currentTrackObj: MusicCardProps = {
+      videoId,
+      title,
+      artist,
+      thumbnail,
+      views,
+      likes,
+      duration,
+    };
+
+    const updatedHistory = [currentTrackObj, ...filteredHistory];
+
+    const MAX_ITEMS = 10;
+    const finalHistory = updatedHistory.slice(0, MAX_ITEMS);
+
+    setSavesPlayedMusic(filteredHistory);
+    localStorage.setItem("recent_played", JSON.stringify(finalHistory));
+    console.log(`recent saves `, finalHistory);
+    console.log(`Now playing: ${title}`);
   };
+
+  useEffect(() => {
+    console.log("Recent data: ")
+    const stored = localStorage.getItem("recent_played");
+
+    if (stored) {
+      try {
+        setSavesPlayedMusic(JSON.parse(stored))
+        console.log("Recent data: ", savesPlayedMusic)
+      } catch (e) {
+        console.error("Failed to parse recent searches", e);
+      }
+    }
+  }, [])
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setDownloading(true);
-    await downloadTrack(videoId, title);
+    await downloadTrack(videoId, title, artist);
     setDownloading(false);
   };
 
   return (
     <div
-      className={`group relative bg-card hover:bg-accent rounded-xl overflow-hidden transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl border ${
+      className={`h-50 w-50 group dark relative bg-card hover:bg-accent rounded-xl overflow-hidden transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl border ${
         isCurrentlyPlaying 
           ? "border-primary shadow-primary/20" 
           : "border-border hover:border-primary/20"
@@ -132,28 +177,25 @@ export function MusicCard({
         <h3 className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
           {title}
         </h3>
-        
-        {artist && artist !== "Unknown" && (
-          <p className="text-xs text-muted-foreground mb-3 flex items-center gap-1">
-            <Music className="w-3 h-3" />
-            {artist}
-          </p>
-        )}
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Eye className="w-3 h-3" />
-              {formatViews(views)}
-            </span>
-            {likes && likes !== "0" && (
-              <span className="flex items-center gap-1">
-                <Heart className="w-3 h-3" />
-                {formatViews(likes)}
-              </span>
-            )}
-          </div>
+        <div className="flex text-muted-foreground items-center justify-between text-xs">
+          {artist && artist !== "Unknown" && (
+            <p className="">
+              {/* <Music className="w-3 h-3" /> */}
+              {artist}
+            </p>
+          )}
+
+          
+
+          <span className="flex items-center gap-1">
+            {/* <Eye className="w-3 h-3" /> */}
+            {formatViews(views)}
+          </span>
+   
+        
         </div>
+        
       </div>
     </div>
   );

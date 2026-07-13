@@ -6,6 +6,7 @@ import { Topbar } from "@/components/layout/Topbar";
 import { SearchProvider } from "./contexts/SearchContext";
 import MusicPlayer from "@/components/player/MusicPlayer";
 import { MobileNavBar } from "@/components/layout/MobileNavBar";
+import QueryProvider from "@/components/Provider/QueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,9 +35,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-black">
         <SearchProvider>
-        
+          <QueryProvider>
 
-      
+
             <main className="flex-1 flex flex-col relative min-h-0 bg-gradient-to-b from-[#1a1a1a] to-[#121212]">
               {/* Topbar - sticky for navigation */}
               <div className="sticky top-0 z-20 bg-gradient-to-b from-[#1a1a1a]/95 to-[#1a1a1a]/80 backdrop-blur-md px-3 sm:px-6 py-2 md:py-3">
@@ -60,7 +61,7 @@ export default function RootLayout({
                 </div>
               </div>
             </main>
-        
+          </QueryProvider>
         </SearchProvider>
       </body>
     </html>
