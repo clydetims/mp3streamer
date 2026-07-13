@@ -5,7 +5,7 @@
   "scripts": {
     "local": "next dev -H 0.0.0.0",
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint"
   },
