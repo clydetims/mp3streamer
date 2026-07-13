@@ -1,16 +1,16 @@
 // lib/youtube/search.ts
-// NO "use server" directive here - this will be imported by API routes only
 
-// Use dynamic import for the CommonJS module
-let yts: any = null;
+import { Innertube } from 'youtubei.js';
 
-async function getYts() {
-  if (!yts) {
-    // Dynamically import the CommonJS module
-    const module = await Function('return import("yt-search")')();
-    yts = module.default || module;
+let innertube: any = null;
+
+async function getInnertube() {
+  if (!innertube) {
+    innertube = await Innertube.create({
+      cache: new Map(),
+    });
   }
-  return yts;
+  return innertube;
 }
 
 export interface YouTubeVideo {
@@ -25,9 +25,6 @@ export interface YouTubeVideo {
   duration?: string
 }
 
-/**
- * Music keywords that indicate actual music content
- */
 const MUSIC_KEYWORDS = [
   'official audio',
   'official music video',
@@ -42,9 +39,6 @@ const MUSIC_KEYWORDS = [
   'live performance'
 ] as const;
 
-/**
- * Keywords that indicate non-music content to exclude
- */
 const NON_MUSIC_KEYWORDS = [
   'reaction',
   'review',
@@ -70,10 +64,6 @@ const NON_MUSIC_KEYWORDS = [
   'top trending'
 ] as const;
 
-/**
- * Parse duration string to seconds
- * Supports formats: "3:45", "1:23:45"
- */
 function parseDurationToSeconds(duration: string): number {
   if (!duration) return 0;
   
@@ -90,45 +80,29 @@ function parseDurationToSeconds(duration: string): number {
   return 0;
 }
 
-/**
- * Check if duration is less than 10 minutes (600 seconds)
- */
 function isShortDuration(duration: string): boolean {
   const seconds = parseDurationToSeconds(duration);
-  return seconds > 0 && seconds <= 1200; // 10 minutes
+  return seconds > 0 && seconds <= 1200;
 }
 
-/**
- * Check if title contains music-related keywords
- */
 function hasMusicKeywords(title: string): boolean {
   const lowerTitle = title.toLowerCase();
   return MUSIC_KEYWORDS.some(keyword => lowerTitle.includes(keyword));
 }
 
-/**
- * Check if title contains non-music keywords to exclude
- */
 function hasNonMusicKeywords(title: string): boolean {
   const lowerTitle = title.toLowerCase();
   return NON_MUSIC_KEYWORDS.some(keyword => lowerTitle.includes(keyword));
 }
 
-/**
- * Extract artist name from title
- * Example: "Artist Name - Song Title (Official Music Video)" -> "Artist Name"
- */
 function extractArtistFromTitle(title: string, fallbackAuthor: string): string {
   const separators = [' - ', ' – ', ' | ', ' // '];
-  const lowerTitle = title.toLowerCase();
   
-  // Try to find artist before separator
   for (const separator of separators) {
     if (title.includes(separator)) {
       const parts = title.split(separator);
       const possibleArtist = parts[0].trim();
       
-      // Validate artist name
       if (possibleArtist.length > 0 && 
           possibleArtist.length < 100 && 
           /[a-zA-Z]/.test(possibleArtist) &&
@@ -142,13 +116,9 @@ function extractArtistFromTitle(title: string, fallbackAuthor: string): string {
   return fallbackAuthor;
 }
 
-/**
- * Clean song title by removing artist prefix and music keywords
- */
 function cleanSongTitle(fullTitle: string): string {
   let title = fullTitle;
   
-  // Remove music keywords in parentheses or brackets
   const patterns = [
     /\(official (audio|music video|lyric video|video)\)/gi,
     /\[official (audio|music video|lyric video|video)\]/gi,
@@ -163,7 +133,6 @@ function cleanSongTitle(fullTitle: string): string {
     title = title.replace(pattern, '');
   });
   
-  // Remove artist prefix if exists
   const separators = [' - ', ' – ', ' | ', ' // '];
   for (const separator of separators) {
     if (title.includes(separator)) {
@@ -175,7 +144,6 @@ function cleanSongTitle(fullTitle: string): string {
     }
   }
   
-  // Clean up
   title = title
     .replace(/\s+/g, ' ')
     .replace(/\(\s*\)/g, '')
@@ -186,14 +154,10 @@ function cleanSongTitle(fullTitle: string): string {
   return title || fullTitle;
 }
 
-/**
- * Score how likely a video is to be actual music content
- */
 function getMusicScore(title: string): number {
   let score = 0;
   const lowerTitle = title.toLowerCase();
   
-  // High confidence music indicators
   if (lowerTitle.includes('official music video')) score += 10;
   if (lowerTitle.includes('official audio')) score += 9;
   if (lowerTitle.includes('official lyric video')) score += 8;
@@ -203,7 +167,6 @@ function getMusicScore(title: string): number {
   if (lowerTitle.includes('visualizer')) score += 4;
   if (lowerTitle.includes('audio')) score += 3;
   
-  // Penalize non-music
   if (lowerTitle.includes('reaction')) score -= 10;
   if (lowerTitle.includes('review')) score -= 8;
   if (lowerTitle.includes('tutorial')) score -= 10;
@@ -212,29 +175,22 @@ function getMusicScore(title: string): number {
   if (lowerTitle.includes('interview')) score -= 8;
   if (lowerTitle.includes('live')) score -= 5;
   
-  // Bonus for proper artist - title format
   if (lowerTitle.includes(' - ') || lowerTitle.includes(' – ')) score += 2;
   
   return score;
 }
 
-/**
- * Filter results for music-only content
- */
 function filterMusicVideos(videos: YouTubeVideo[]): YouTubeVideo[] {
   return videos
     .filter(video => {
-      // Duration check - must be less than 10 minutes
       if (video.timestamp && !isShortDuration(video.timestamp)) {
         return false;
       }
       
-      // Must have music keywords
       if (!hasMusicKeywords(video.title)) {
         return false;
       }
       
-      // Must not have non-music keywords
       if (hasNonMusicKeywords(video.title)) {
         return false;
       }
@@ -243,70 +199,64 @@ function filterMusicVideos(videos: YouTubeVideo[]): YouTubeVideo[] {
     })
     .map(video => ({
       ...video,
-      // Extract and set proper artist name
       author: extractArtistFromTitle(video.title, video.author),
-      // Clean up the title
       title: cleanSongTitle(video.title),
     }))
     .sort((a, b) => {
-      // Sort by music score (higher first)
       const scoreA = getMusicScore(a.title);
       const scoreB = getMusicScore(b.title);
       return scoreB - scoreA;
     });
 }
 
-/**
- * Search YouTube with optional music filtering
- */
 export async function searchYouTube(
   query: string, 
   limit: number = 10,
   musicOnly: boolean = true
 ): Promise<YouTubeVideo[]> {
-  if (!query) return []
+  if (!query) return [];
 
   try {
-    const ytSearch = await getYts();
+    const youtube = await getInnertube();
     
-    // Add music-specific terms to improve search
     const searchQuery = musicOnly 
       ? `${query} official audio OR official music video OR official lyric video`
       : query;
     
-    const r = await ytSearch(searchQuery)
+    const searchResults = await youtube.search(searchQuery, {
+      type: 'video',
+    });
     
-    // Map to clean frontend object
-    let videos: YouTubeVideo[] = r.videos
-      .slice(0, limit * 2) // Fetch extra for filtering
-      .map((video: any) => ({
-        videoId: video.videoId,
-        url: video.url,
-        title: video.title,
-        image: video.image || '',
-        author: video.author?.name || 'Unknown Artist',
-        timestamp: video.duration?.timestamp || '',
-        views: String(video.views || 0),
-        duration: video.duration?.timestamp || '',
-      }));
+    let videos: YouTubeVideo[] = [];
     
-    // Apply music filtering
-    if (musicOnly) {
+    if (searchResults?.results) {
+      videos = searchResults.results
+        .filter((item: any) => item.type === 'Video')
+        .slice(0, limit * 2)
+        .map((video: any) => ({
+          videoId: video.id,
+          url: `https://www.youtube.com/watch?v=${video.id}`,
+          title: video.title?.text || 'Unknown Title',
+          image: video.thumbnails?.[0]?.url || '',
+          author: video.author?.name || 'Unknown Artist',
+          timestamp: video.duration?.text || '',
+          views: video.view_count?.text || '0',
+          duration: video.duration?.text || '',
+        }));
+    }
+    
+    if (musicOnly && videos.length > 0) {
       videos = filterMusicVideos(videos);
     }
     
-    // Return limited results
     return videos.slice(0, limit);
     
   } catch (error) {
-    console.error('YouTube search error:', error)
-    return []
+    console.error('YouTube search error:', error);
+    return [];
   }
 }
 
-/**
- * Search specifically for music recommendations (always filtered)
- */
 export async function searchMusicRecommendations(
   query: string,
   limit: number = 10
@@ -337,70 +287,74 @@ export interface SpotifyAllResults {
   artists: SpotifyArtist[]
 }
 
-/**
- * Perform a search returning songs, playlists, and channels (artists)
- */
 export async function searchAll(
   query: string,
   limit: number = 10,
   musicOnly: boolean = true
 ): Promise<SpotifyAllResults> {
-  if (!query) return { songs: [], playlists: [], artists: [] }
+  if (!query) return { songs: [], playlists: [], artists: [] };
 
   try {
-    const ytSearch = await getYts();
+    const youtube = await getInnertube();
     
     const searchQuery = musicOnly 
       ? `${query} official audio OR official music video OR official lyric video`
       : query;
-      
-    const r = await ytSearch(searchQuery)
-
-    // Map videos
-    let videos: YouTubeVideo[] = r.videos
-      .slice(0, limit * 2)
-      .map((video: any) => ({
-        videoId: video.videoId,
-        url: video.url,
-        title: video.title,
-        image: video.image || '',
-        author: video.author?.name || 'Unknown Artist',
-        timestamp: video.duration?.timestamp || '',
-        views: String(video.views || 0),
-        duration: video.duration?.timestamp || '',
-      }))
-
-    if (musicOnly) {
-      videos = filterMusicVideos(videos)
+    
+    const searchResults = await youtube.search(searchQuery, {
+      type: 'video',
+    });
+    
+    let videos: YouTubeVideo[] = [];
+    let playlists: SpotifyPlaylist[] = [];
+    let artists: SpotifyArtist[] = [];
+    
+    if (searchResults?.results) {
+      searchResults.results.forEach((item: any) => {
+        if (item.type === 'Video') {
+          videos.push({
+            videoId: item.id,
+            url: `https://www.youtube.com/watch?v=${item.id}`,
+            title: item.title?.text || 'Unknown Title',
+            image: item.thumbnails?.[0]?.url || '',
+            author: item.author?.name || 'Unknown Artist',
+            timestamp: item.duration?.text || '',
+            views: item.view_count?.text || '0',
+            duration: item.duration?.text || '',
+          });
+        } else if (item.type === 'Playlist') {
+          playlists.push({
+            listId: item.id,
+            url: `https://www.youtube.com/playlist?list=${item.id}`,
+            title: item.title?.text || 'Unknown Playlist',
+            image: item.thumbnails?.[0]?.url || '',
+            author: item.author?.name || 'Unknown Creator',
+            videoCount: item.video_count || 0,
+          });
+        } else if (item.type === 'Channel') {
+          artists.push({
+            name: item.author?.name || 'Unknown Artist',
+            url: item.author?.url || '',
+            image: item.author?.thumbnails?.[0]?.url || '',
+            subCountLabel: item.author?.subscriber_count || '',
+            videoCount: 0,
+          });
+        }
+      });
     }
-    const songs = videos.slice(0, limit)
-
-    // Map playlists
-    const playlists: SpotifyPlaylist[] = r.playlists
-      .slice(0, limit)
-      .map((pl: any) => ({
-        listId: pl.listId,
-        url: pl.url,
-        title: pl.title,
-        image: pl.image || pl.thumbnail || '',
-        author: pl.author?.name || 'Unknown Creator',
-        videoCount: pl.videoCount,
-      }))
-
-    // Map channels/artists
-    const artists: SpotifyArtist[] = r.channels
-      .slice(0, limit)
-      .map((ch: any) => ({
-        name: ch.name || ch.title || 'Unknown Artist',
-        url: ch.url,
-        image: ch.image || ch.thumbnail || '',
-        subCountLabel: ch.subCountLabel,
-        videoCount: ch.videoCount,
-      }))
-
-    return { songs, playlists, artists }
+    
+    if (musicOnly && videos.length > 0) {
+      videos = filterMusicVideos(videos);
+    }
+    
+    return {
+      songs: videos.slice(0, limit),
+      playlists: playlists.slice(0, limit),
+      artists: artists.slice(0, limit),
+    };
+    
   } catch (error) {
-    console.error('Spotify-style search error:', error)
-    return { songs: [], playlists: [], artists: [] }
+    console.error('Spotify-style search error:', error);
+    return { songs: [], playlists: [], artists: [] };
   }
 }
