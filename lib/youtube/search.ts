@@ -1,6 +1,5 @@
 // lib/youtube/search.ts
 
-"use server"
 
 import yts from 'yt-search'
 
